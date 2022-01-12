@@ -3,15 +3,20 @@
 1. deploy config.gatekeeper.yml
 1. deploy dntracer.pod.yaml
 1. determine target container id
-1. perform rest of steps inside dntracer pod via kubectl exec
+1. perform rest of steps inside dntracer pod via kubectl exec `kubectl exec -it dntracer -- /bin/bash`
 1. determine real path of tmp
 ```
+# make sure container ID doesn't container containerd:// prefix
 REALTMP=/host$(/app/bin/ctr --address /host/run/k3s/containerd/containerd.sock -n k8s.io c info $CID | jq -r '.Spec.mounts[] | select(."destination" | contains("tmp")).source')
 ```
 1. symlink real path of tmp to /app/tmp `echo $REALTMP | xargs ln -s`
 1. set TMPDIR env var
 ```export TMPDIR=/app/tmp```
-1. execute `/app/dotnet-trace collect -p 1`
+1. execute `dotnet-trace collect -p 1`
+
+This will produce a trace output file in /tmp .  You can also specify an output format like speedscope if needed.  To download this file, open a new terminal and use `kubectl cp dntracer:/tmp/trace.speedscope.json trace.speedscope.json` to copy the locally.
+
+When finished, be sure to delete the dntracer pod and gatekeeper config that were applied.
 
 # With kubectl-flame
 

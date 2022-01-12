@@ -9,7 +9,7 @@ spec:
     command:
     - /usr/bin/sleep
     - "100000"
-    image: quay.io/michaelgugino/dntracer:v0.101
+    image: sfbrdevhelmweacr.azurecr.io/sf-dotnet-tools:v0.2
     imagePullPolicy: Always
     name: dntracer
     resources: {}

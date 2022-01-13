@@ -1,8 +1,9 @@
 # dntracer steps
-
-1. deploy config.gatekeeper.yml
-1. deploy dntracer.pod.yaml
 1. determine target container id
+1. determine which node the pod is running on
+1. deploy config.gatekeeper.yml
+1. uncomment spec.nodeName and set appropriately in dntracer.pod.yaml if using a multinode cluster.
+1. deploy dntracer.pod.yaml
 1. perform rest of steps inside dntracer pod via kubectl exec `kubectl exec -it dntracer -- /bin/bash`
 1. determine real path of tmp
 ```
@@ -12,13 +13,23 @@ REALTMP=/host$(/app/bin/ctr --address /host/run/k3s/containerd/containerd.sock -
 1. symlink real path of tmp to /app/tmp `echo $REALTMP | xargs ln -s`
 1. set TMPDIR env var
 ```export TMPDIR=/app/tmp```
-1. execute `dotnet-trace collect -p 1`
+1. execute the desired dotnet tool.
 
-This will produce a trace output file in /tmp .  You can also specify an output format like speedscope if needed.  To download this file, open a new terminal and use `kubectl cp dntracer:/tmp/trace.speedscope.json trace.speedscope.json` to copy the locally.
+## dotnet-trace example
+
+1. execute `dotnet-trace collect -o /tmp/trace --format SpeedScope --process-id 1`
+
+The dotnet-tools will indicate tracing systemd, but that is not accurate, utilzing the
+tools in this way cannot properly idenfity the real process name.
+
+This will produce a trace output file in /tmp and also convert it to SpeedScope format.
+To download this file, open a new terminal and use
+`kubectl cp dntracer:/tmp/trace.speedscope.json trace.speedscope.json`
+to copy the locally.
 
 When finished, be sure to delete the dntracer pod and gatekeeper config that were applied.
 
-# With kubectl-flame
+# With kubectl-flame (expirmental)
 
 1. deploy config.gatekeeper.yml
 1. Checkout and build modified kubectl-flame
